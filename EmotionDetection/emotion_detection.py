@@ -6,13 +6,21 @@ def emotion_detector(text_to_analyze):
     headers = {"grpc-metadata-mm-model-id": "emotion_aggregated-workflow_lang_en_stock"}
     input_json = { "raw_document": { "text": text_to_analyze } }
     
-    # Realizar la solicitud POST a la API de Watson NLP
     response = requests.post(url, json=input_json, headers=headers)
     
-    # Convertir la respuesta de texto a un diccionario usando la librería json
+    # Manejo de errores para entradas vacías (status_code == 400)
+    if response.status_code == 400:
+        return {
+            'anger': None,
+            'disgust': None,
+            'fear': None,
+            'joy': None,
+            'sadness': None,
+            'dominant_emotion': None
+        }
+    
     formatted_response = json.loads(response.text)
     
-    # Extraer las emociones y sus puntuaciones
     emotion_predictions = formatted_response['emotionPredictions'][0]['emotion']
     anger_score = emotion_predictions['anger']
     disgust_score = emotion_predictions['disgust']
@@ -20,7 +28,6 @@ def emotion_detector(text_to_analyze):
     joy_score = emotion_predictions['joy']
     sadness_score = emotion_predictions['sadness']
     
-    # Crear un diccionario con todas las puntuaciones de emociones
     emotion_scores = {
         'anger': anger_score,
         'disgust': disgust_score,
@@ -29,10 +36,8 @@ def emotion_detector(text_to_analyze):
         'sadness': sadness_score
     }
     
-    # Encontrar la emoción dominante (la que tiene la puntuación más alta)
     dominant_emotion = max(emotion_scores, key=emotion_scores.get)
     
-    # Devolver el formato de salida requerido
     return {
         'anger': anger_score,
         'disgust': disgust_score,
